@@ -1,0 +1,242 @@
+robot:
+  robot: my_robot
+  load:
+    dir: true
+    type: .csv
+    fname: /home/firefly/DRL-Autopilot/ros1_workspace/src/scripts/ex_data/cf.csv
+    freq: 50
+    data_labels:
+    - pwm1
+    - pwm2
+    - pwm3
+    - pwm4
+    - ax
+    - ay
+    - az
+    - wx
+    - wy
+    - wz
+    - pitch
+    - roll
+    - yaw
+  policy:
+    params:
+      period: 20
+  pid:
+    params:
+      mode: INTEG
+      equil:
+      - 40000
+      - 40000
+      - 40000
+      - 40000
+      min_pwm: 0
+      max_pwm: 65535
+      int_max: 10000
+      dt: 0.02
+      min_values:
+      - 0.1
+      - 0.001
+      - 0.001
+      max_values:
+      - 50000
+      - 10000
+      - 50000
+      terminal_cost: 1
+      living_cost: 0.1
+      pitch_mult:
+      - -1
+      - 1
+      - 1
+      - -1
+      roll_mult:
+      - 1
+      - 1
+      - -1
+      - -1
+      pry:
+      - 3
+      - 4
+      - 5
+  model:
+    params:
+      dx: 9
+      du: 4
+      dt: 9
+      delta_state_targets:
+      - pitch
+      - roll
+      - yaw
+      true_state_targets:
+      - linax
+      - linay
+      - linaz
+      - omegax
+      - omegay
+      - omegaz
+      ignore_in:
+      - vbat
+      extra_inputs: null
+  env:
+    params:
+      dx: 9
+      du: 4
+      dt: 9
+      name: my_robot
+      flight_mode: basic
+models:
+  model:
+    class: learn.models.GeneralNN
+    params:
+      name: my_robot
+      history: 3
+      sym: true
+      reflect: false
+      delta_state_targets:
+      - pitch
+      - roll
+      - yaw
+      true_state_targets:
+      - linax
+      - linay
+      - linaz
+      - omegax
+      - omegay
+      - omegaz
+      ignore_in:
+      - vbat
+      extra_inputs: null
+      training:
+        ensemble: false
+        dx: 6
+        du: 4
+        dt: 6
+        hid_width: 128
+        hid_depth: 2
+        probl: true
+        activ: learn.utils.nn.Swish
+        dropout: 0
+        split: false
+        mode: delta
+        plot_loss: true
+        cluster: 0
+      optimizer:
+        epochs: 60
+        batch: 32
+        split: 0.8
+        lr: 0.0005
+        lr_schedule:
+        - 30
+        - 6
+        preprocess: true
+        verbose: false
+      datahandler:
+        class: learn.utils.nn.ModelDataHandler
+        params:
+          X:
+            class: sklearn.preprocessing.StandardScaler
+            U:
+              class: sklearn.preprocessing.MinMaxScaler
+              params:
+                feature_range:
+                - -1.0
+                - 1.0
+            dX:
+              class: sklearn.preprocessing.MinMaxScaler
+              params:
+                feature_range:
+                - -1.0
+                - 1.0
+            sine_expand: []
+dimension: all
+save: false
+checkpoint_file: trial_{}.dat
+random_seed: 1
+policy:
+  mode: mpc
+data: false
+experiment:
+  seed: 123
+  random: 3
+  repeat: 1
+  r_len: 500
+  history: true
+  wait_for_land_duration: 3
+  plot_protect: false
+  lost_connection_duration: 0.2
+  use_horizontal_control: true
+  is_sim: true
+  num_roll: 15
+  seeds: 5
+  quick_save_enable: false
+  height_hover: 0.5
+  vel_threshold: 0.3
+  mocap_freq: 250
+  hover: 1570
+  land_minus: 300
+  sigma_protect: 100
+  rampup_pwm_add: 100
+  rampup_rounds: 16
+  pos_offset:
+  - 0
+  - 0
+  - 0
+  use_previous_rand_data: false
+  ues_pid_protect: false
+  wait_for_land: false
+  bound_pos_explore:
+  - -0.8
+  - 0.8
+  - -0.8
+  - 0.8
+  - 0.15
+  - 1.2
+  bound_ang_explore: 25.0
+  bound_mag_explore: 1000.0
+  bound_pos_protect:
+  - -1.1
+  - 1.1
+  - -1.1
+  - 1.1
+  - 0.3
+  - 1.2
+  bound_ang_protect: 60.0
+  bound_pos_safe:
+  - -1.7
+  - 1.7
+  - -1.7
+  - 1.7
+  - 0.0
+  - 0.5
+  bound_ang_safe: 15.0
+  bound_mag_safe: 25.0
+  bound_mag_pos: 0.6
+  bound_mag_pos_z: 3
+  rand_data_list:
+  - - ../../2022-06-24/19-10-51/data_total.txt
+    - 0
+    - 0
+  - - ../../2022-06-24/19-10-51/data_total.txt
+    - 0
+    - 1
+  - - ../../2022-06-24/19-10-51/data_total.txt
+    - 0
+    - 2
+mpc:
+  params:
+    mode: random
+    'N': 5000
+    T: 7
+    hold: true
+    low: 1075
+    high: 1950
+    sigma: 100
+    step: 5
+    hover: 1570
+    hover_real: 1685
+bo:
+  iterations: 10
+  sim: false
+metric:
+  name: Square
+  minimize: false
